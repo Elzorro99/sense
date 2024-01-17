@@ -16,6 +16,8 @@ class SubCliConfig:
                 self.sense_dir = json.load(file).get('path', self.sense_dir)
         except Exception as e:
             pass
+
+        self._mode = 0
         self._config_data = {}
         self._api_tokens = []
         self._models = {
@@ -48,6 +50,7 @@ class SubCliConfig:
             else:
                 return;
 
+        self._set_mode()
         self._generate_api_key_if_required()
         self._set_gpu_ids()
         self._generate_config()
@@ -78,9 +81,11 @@ class SubCliConfig:
         if os.path.exists(config_path):
             with open(config_path, 'r') as json_file:
                 self._config_data = json.load(json_file)
+            self._mode = self._config_data.get('mode', 0)
             self._api_tokens = self._config_data.get('api_tokens', [])
             self._models = self._config_data.get('models', [])
         else:
+            self._mode = 0
             self._config_data = {}
             self._api_tokens = []
 
@@ -100,11 +105,22 @@ class SubCliConfig:
             self._api_tokens = [key]
             print(colored(f"API Key generated: {key}", "green"))
 
+    def _set_mode(self):
+        response = input(colored("Mode? (0=Diffusion&Turbomind/1=Diffusion/2=Turbomind): ", "blue"))
+        if response.lower() == '1':
+            self._mode = 1
+        elif response.lower() == '2':
+            self._mode = 2
+        else:
+            self._mode = 0
+        print(colored(f"Mode --> {self._mode}", "green"))
+    
     def _generate_config(self):
         # Save to config.py
 
         # Save to config.json
         config_json = {
+            "mode": self._mode,
             "api_tokens": self._api_tokens,
             "models": self._models
         }
