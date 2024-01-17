@@ -104,6 +104,7 @@ class TurboMind:
         self.tb_model_type = tb_model_type
         self.gpu_id = gpu_id
         self.base_directory = instance.base_directory
+        self.error_completion_count = 0
         # Load TurboMind Model
         #self.run_build_process()
         self.run_subprocess()
@@ -250,6 +251,9 @@ class TurboMind:
     # Function for message completions
     def completion(self, messages=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, max_tokens=512):
         logging.debug(f"[-->] [{self.model_path}] Request for completion")
+        self.error_completion_count += 1
+        if self.error_completion_count >= 10:
+            subprocess.run(["pm2", "restart", "sense"])
         payload = {
             "model": self.tb_model,
             "messages": messages,
@@ -280,6 +284,7 @@ class TurboMind:
 
         streaming_duration = round(time.time() - stream_start_time, 2)
         logging.debug(f"[<--] (Completion) [{self.model_path}] Completion done in {streaming_duration}s")
+        self.error_completion_count = 0
 
     async def destroy(self):
         if self.process:
