@@ -56,8 +56,12 @@ class ModelManager:
         Load models as specified in the configuration.
         """
         models = self.config.get('models', {})
-        self.load_diffusions(models.get('diffusions', []))
-        self.load_turbomind(models.get('turbomind', []))
+        mode = self.config.get('mode', 0)
+        
+        if mode != 2:
+            self.load_diffusions(models.get('diffusions', []))
+        if mode != 1:
+            self.load_turbomind(models.get('turbomind', []))
 
     def load_diffusions(self, diffusions):
         """
@@ -88,5 +92,9 @@ class ModelManager:
         Initialize specific models after loading them.
         """
         models = self.config.get('models', {})
-        self.models["Qwen|Qwen-72B-Chat"] = TurboMind(self, model_path="/models/CortexLM-qwen-72b-chat-w4/workspace", gpu_id=models["turbomind"][0]["gpu_id"], model_type=models["turbomind"][0]["modelType"])
-        self.models["dataautogpt3|OpenDalleV1.1"] = SDFast(self, model_path="/models/dataautogpt3-OpenDalleV1.1/model", model_refiner="/models/stabilityai-stable-diffusion-xl-refiner-1.0/model", port=6001, model_type="t2i", gpu_id=models["diffusions"][0]["gpu_id"])
+        mode = self.config.get('mode', 0)
+        
+        if mode != 2:
+            self.models["dataautogpt3|OpenDalleV1.1"] = SDFast(self, model_path="/models/dataautogpt3-OpenDalleV1.1/model", model_refiner="/models/stabilityai-stable-diffusion-xl-refiner-1.0/model", port=6001, model_type="t2i", gpu_id=models["diffusions"][0]["gpu_id"])
+        if mode != 1:
+            self.models["Qwen|Qwen-72B-Chat"] = TurboMind(self, model_path="/models/CortexLM-qwen-72b-chat-w4/workspace", gpu_id=models["turbomind"][0]["gpu_id"], model_type=models["turbomind"][0]["modelType"])
