@@ -27,7 +27,7 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/CortexLM/sense/0.0.1/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.0.1/install.sh```
 
 **Make the script executable:**
 
@@ -39,6 +39,7 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Initialize conda environment:**
 
+```bash```
 ```conda activate sense```
 
 **Init Sense Directory:**
@@ -49,12 +50,17 @@ This repository includes a daemon service designed to automate the inference pro
 
 ```sense config init```
 
-
 Then generate an API key, which will ask you to allocate the GPUs. You can only allocate one GPU for the Diffusion model, and (1,2 or 4 GPUs). To allocate them, simply enter the GPU ID.
 
 For 5 GPUs :
 Diffusions: ```0```
 Turbomind ```1,2,3,4```
+
+**Install Node.js and PM2:**
+
+```apt install nodejs npm -y```
+
+```npm i pm2 -g```
 
 **Run:**
 
