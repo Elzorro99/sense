@@ -81,7 +81,7 @@ class ModelManager:
         models = self.config.get('models', {})
         mode = self.config.get('mode', 0)
         logging.success("Pulse Load Balancer is disabled. Loading models via config.json")
-        
+
         tasks = []
         if mode != 2:
             await self.load_diffusions(models.get('diffusions', []))

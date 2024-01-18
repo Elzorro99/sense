@@ -140,4 +140,3 @@ class SDFast:
                 logging.error(f"Error when stopping {self.model_path} model: {e}")
         else:
             logging.info(f"{self.model_path} model is not running.")
-
