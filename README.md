@@ -25,17 +25,21 @@ This repository includes a daemon service designed to automate the inference pro
 
 **To install the script, follow these steps:**
 
+
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/CortexLM/sense/0.2.0/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.2.0/install.sh```
+
 
 **Make the script executable:**
 
 ```chmod  +x install.sh```
 
+
 **Run the auto-installer:**
 
 ```./install.sh```
+
 
 **Initialize conda environment:**
 
@@ -43,28 +47,15 @@ This repository includes a daemon service designed to automate the inference pro
 
 ```conda activate sense```
 
+
 **Init Sense Directory:**
 
 ```cd /srv/sense && sense init```
 
+
 **Generate config:**
 
 ```sense config init```
-
-
-**Install Node.js and PM2:**
-
-```curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash```
-
-```export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"```
-
-```[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"```
-
-```nvm install --lts```
-
-```npm i pm2 -g```
-
-
 
 Then generate an API key, which will ask you to allocate the GPUs. You can only allocate one GPU for the Diffusion model, and (1,2 or 4 GPUs). To allocate them, simply enter the GPU ID.
 
@@ -72,9 +63,20 @@ For 8 GPUs :
 Diffusions: ```4,5,6,7```
 Turbomind ```0,1,2,3```
 
+
+**Install Node.js and PM2:**
+
+```apt install nodejs npm -y```
+
+```npm i pm2 -g```
+
+
 **Run:**
 
+```pm2 start "python3 sense.py --host 0.0.0.0 --port 8080 --pulse False" --name sense```
+
 ```pm2 start run.py --name sense -- --process_name sense_daemon --host 0.0.0.0 --port 8080 --pulse False```
+
 
 ## 📋 Requirements
 
