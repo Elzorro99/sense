@@ -25,17 +25,21 @@ This repository includes a daemon service designed to automate the inference pro
 
 **To install the script, follow these steps:**
 
+
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.1.4/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.2.0/install.sh```
+
 
 **Make the script executable:**
 
 ```chmod +x install.sh```
 
+
 **Run the auto-installer:**
 
 ```./install.sh```
+
 
 **Initialize conda environment:**
 
@@ -43,9 +47,11 @@ This repository includes a daemon service designed to automate the inference pro
 
 ```conda activate sense```
 
+
 **Init Sense Directory:**
 
 ```cd /srv/sense && sense init```
+
 
 **Generate config:**
 
@@ -53,9 +59,10 @@ This repository includes a daemon service designed to automate the inference pro
 
 Then generate an API key, which will ask you to allocate the GPUs. You can only allocate one GPU for the Diffusion model, and (1,2 or 4 GPUs). To allocate them, simply enter the GPU ID.
 
-For 5 GPUs :
-Diffusions: ```0```
-Turbomind ```1,2,3,4```
+For 8 GPUs :
+Diffusions: ```4,5,6,7```
+Turbomind ```0,1,2,3```
+
 
 **Install Node.js and PM2:**
 
@@ -63,9 +70,13 @@ Turbomind ```1,2,3,4```
 
 ```npm i pm2 -g```
 
+
 **Run:**
 
 ```pm2 start "python3 sense.py --host 0.0.0.0 --port 8080 --pulse False" --name sense```
+
+```pm2 start run.py --name sense -- --process_name sense_daemon --host 0.0.0.0 --port 8080 --pulse False```
+
 
 ## 📋 Requirements
 

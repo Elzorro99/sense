@@ -108,13 +108,12 @@ class TurboMind:
         self.base_directory = instance.base_directory
         self.error_completion_count = 0
         # Load TurboMind Model
-        # self.run_build_process()
-        self.run_subprocess()
+        self.run_build_process()
+        self.start_process()
 
     def is_running(self):
         stat = os.system("ps -p %s &> /dev/null" % self.process.pid)
         return stat == 0
-    # Function to get the GPU memory usage
     def get_gpu_memory(self, gpu_id):
         try:
             gpu_info = GPUtil.getGPUs()[gpu_id]
@@ -159,13 +158,19 @@ class TurboMind:
         except Exception as e:
             logging.error(f"An error occurred during warming up: {str(e)}")
 
+    # Function to start the TurboMind subprocess
+    def start_process(self):
+        # Create a thread to run the subprocess
+        self.process_thread = threading.Thread(target=self.run_subprocess)
+        self.process_thread.start()
+
     # Function to run the model build process
     def run_build_process(self):
-        if not check_tp_config(f"{self.base_directory}{self.model_path}/workspace/triton_models/weights/config.ini", count_gpu(self.gpu_id)):
+        if not check_tp_config(f"{self.base_directory}{self.model_path}workspace/triton_models/weights/config.ini", count_gpu(self.gpu_id)):
             environment = os.environ.copy()
             environment["CUDA_VISIBLE_DEVICES"] = self.gpu_id
             
-            command = f"lmdeploy convert --model-name {self.tb_model_type} --model-path {self.base_directory}{self.model_path}/model --dst_path {self.base_directory}{self.model_path}/workspace --model-format awq --group-size 128 --tp {count_gpu(self.gpu_id)}"
+            command = f"lmdeploy convert --model-name {self.tb_model_type} --model-path {self.base_directory}{self.model_path}model --dst_path {self.base_directory}{self.model_path}workspace --model-format awq --group-size 128 --tp {count_gpu(self.gpu_id)}"
             logging.info(f'Spawning build model for {self.model_path}')
 
             try:
@@ -182,36 +187,38 @@ class TurboMind:
         environment = os.environ.copy()
         environment["CUDA_VISIBLE_DEVICES"] = self.gpu_id
         
-        command = f"lmdeploy serve api_server {self.base_directory}{self.model_path}/model --model-name {self.tb_model_type}  --server-name {self.host} --server-port {self.port} --tp {count_gpu(self.gpu_id)} --model-format awq"
+        command = f"lmdeploy serve api_server {self.base_directory}{self.model_path}workspace --server-name {self.host} --server-port {self.port} --tp {count_gpu(self.gpu_id)}"
         logging.info(f'Spawning 1 process for {self.model_path}')
 
         try:
             # Execute the command using subprocess.run
-            self.process = subprocess.Popen(shlex.split(command), shell=False, env=environment, preexec_fn=os.setsid, stdout=subprocess.PIPE)
+            subprocess.run(command, shell=True, check=False, env=environment)
         except subprocess.CalledProcessError as e:
             logging.error(f"Error when executing the command: {e}")
         except Exception as e:
             logging.error(f"An error occurred: {e}")
 
     # Function to wait for the TurboMind model to be ready
-    async def wait_for_tb_model_status(self, timeout=360):
-        start_time = asyncio.get_event_loop().time()
+    def wait_for_tb_model_status(self, timeout=240):
+        start_time = time.time()
         url = f"http://{self.host}:{self.port}/v1/models"
-        async with aiohttp.ClientSession() as session:
-            while True:
-                current_time = asyncio.get_event_loop().time()
-                if current_time - start_time > timeout:
-                    logging.error(f"Timeout of {timeout} seconds exceeded for model {self.model_path} ({self.host}:{self.port})")
-                    return False
+        while True:
+            current_time = time.time()
+            if current_time - start_time > timeout:
+                logging.error(f"Error: Timeout of {timeout} seconds exceeded for model {self.model_path} ({self.host}:{self.port})")
+                return False
 
-                try:
-                    async with session.get(url) as response:
-                        if response.status == 200:
-                            data = await response.json()
-                            self.tb_model = data['data'][0]['id']
-                            return True
-                except aiohttp.ClientError:
-                    await asyncio.sleep(1)
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    self.tb_model = data['data'][0]['id']
+                    logging.info(f'Model {self.model_path} is ready')
+                    return True
+            except requests.exceptions.RequestException:
+                time.sleep(1)
+                pass
+
     # Function for interactive completions
     async def interactive_async(self, prompt=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, top_k=40, max_tokens=512):
         logging.debug(f"[-->] (Interactive) [{self.model_path}] Request for completion")
