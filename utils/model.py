@@ -73,24 +73,28 @@ class ModelManager:
     async def allocate_wrapper(self, engine, model_name, n_gpus, tb_model_type=None):
         async for chunk in self.allocate(engine=engine, model_name=model_name, n_gpus=n_gpus, tb_model_type=tb_model_type):
             logging.debug(chunk)
+    
     async def load_models_from_config(self):
         """
         Asynchronously load models as specified in the configuration.
         """
         models = self.config.get('models', {})
+        mode = self.config.get('mode', 0)
         logging.success("Pulse Load Balancer is disabled. Loading models via config.json")
-        if self.config.get('mode', 1)==1:
+
+        tasks = []
+        if mode != 2:
             await self.load_diffusions(models.get('diffusions', []))
-        else:
+            tasks.extend([self.allocate_wrapper(engine="sdfast", model_name="dataautogpt3|OpenDalleV1.1", n_gpus=gpu_id) for gpu_id in models["diffusions"][0]["gpu_id"].split(",")])
+            
+        if mode != 1:
             await self.load_turbomind(models.get('turbomind', []))
-        gpu_ids = models["diffusions"][0]["gpu_id"].split(",")  # Split the GPU IDs string into a list
-        if self.config.get('mode', 1)==1:
-            for gpu_id in gpu_ids:
-                await self.allocate_wrapper(engine="sdfast", model_name="dataautogpt3|OpenDalleV1.1", n_gpus=gpu_id)
-        else:
-            await self.allocate_wrapper(engine="turbomind", model_name="CortexLM|qwen-72b-chat-w4", n_gpus=models["turbomind"][0]["gpu_id"], tb_model_type="qwen-14b")
+            tasks.append(self.allocate_wrapper(engine="turbomind", model_name="CortexLM|qwen-72b-chat-w4", n_gpus=models["turbomind"][0]["gpu_id"], tb_model_type="qwen-14b"))
 
+        logging.debug('Async loading models. Please wait')
 
+        await asyncio.gather(*tasks)
+        
     async def load_diffusions(self, diffusions):
         """
         Asynchronously load diffusion models from the config.
@@ -125,6 +129,7 @@ class ModelManager:
             tm = TurboMind(self, model_path=model_path, model_name=model_name, gpu_id=n_gpus, tb_model_type=model_type, port=self.get_random_port())
             yield {"status": "wait_status", "message": "Wait for status"}
             if await tm.wait_for_tb_model_status():
+                await tm.warm_up(gpu_id=n_gpus)
                 yield {"status": "ready", "message": "Model is ready"}
                 self.models[model_name].status = 1
                 logging.info(f'Model {model_name} is ready')

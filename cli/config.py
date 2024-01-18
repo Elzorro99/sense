@@ -16,6 +16,7 @@ class SubCliConfig:
                 self._sense_dir = json.load(file)['path']
         except Exception as e:
             pass
+
         self._mode = 0
         self._config_data = {}
         self._api_tokens = []
@@ -105,11 +106,13 @@ class SubCliConfig:
             print(colored(f"API Key generated: {key}", "green"))
 
     def _set_mode(self):
-        response = input(colored("Mode ? (1=Diffusions/2=Turbomind): ", "blue"))
+        response = input(colored("Mode? (0=Diffusion&Turbomind/1=Diffusion/2=Turbomind): ", "blue"))
         if response.lower() == '1':
             self._mode = 1
-        else:
+        elif response.lower() == '2':
             self._mode = 2
+        else:
+            self._mode = 0
         print(colored(f"Mode --> {self._mode}", "green"))
 
     def _generate_config(self):

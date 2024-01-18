@@ -27,11 +27,11 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.1.0/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.1.4/install.sh```
 
 **Make the script executable:**
 
-```chmod  +x install.sh```
+```chmod +x install.sh```
 
 **Run the auto-installer:**
 
@@ -53,9 +53,9 @@ This repository includes a daemon service designed to automate the inference pro
 
 Then generate an API key, which will ask you to allocate the GPUs. You can only allocate one GPU for the Diffusion model, and (1,2 or 4 GPUs). To allocate them, simply enter the GPU ID.
 
-For 8 GPUs :
-Diffusions: ```4,5,6,7```
-Turbomind ```0,1,2,3```
+For 5 GPUs :
+Diffusions: ```0```
+Turbomind ```1,2,3,4```
 
 **Install Node.js and PM2:**
 
@@ -95,8 +95,6 @@ To allocate weights to the Flavia subnet, you can use the ```btcli root weights`
 By assigning weights to our subnet, you play a vital role in enhancing its inference capabilities and overall contribution to the BitTensor network. Your support helps us maintain a high-performance, reliable, and efficient subnet for decentralized model inference.
 
 We appreciate your contribution and thank you for your support in advancing decentralized AI with Flavia.
-
-
 
 
 ## 📜 License
