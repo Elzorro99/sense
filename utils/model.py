@@ -94,7 +94,7 @@ class ModelManager:
         logging.debug('Async loading models. Please wait')
 
         await asyncio.gather(*tasks)
-
+        
     async def load_diffusions(self, diffusions):
         """
         Asynchronously load diffusion models from the config.

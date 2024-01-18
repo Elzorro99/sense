@@ -106,6 +106,7 @@ class TurboMind:
         self.tb_model_type = tb_model_type
         self.gpu_id = gpu_id
         self.base_directory = instance.base_directory
+        self.error_completion_count = 0
         # Load TurboMind Model
         self.run_build_process()
         self.start_process()
@@ -123,42 +124,35 @@ class TurboMind:
             return 0.0
 
     # Function to run an interactive test
-    def run_interactive_test(self):
-        tokens = self.interactive(prompt="Once upon a time, in a picturesque little village ...")
-        return concurrent.futures.ThreadPoolExecutor().submit(self.process_tokens, tokens)
-    
+    async def run_interactive_test(self):
+        async for token in self.interactive_async(prompt="Once upon a time, in a picturesque little village ..."):
+            pass
+        return
     # Function to process tokens from an interactive test
-    def process_tokens(self, tokens):
+    async def process_tokens(self, tokens):
         final_response = ""
         for token in tokens:
             final_response += json.loads(token)['text']
         return final_response
 
     # Function to warm up the TurboMind model
-    def warm_up(self, gpu_id):
+    async def warm_up(self, gpu_id):
         logging.info(f"🌺 Warming up {self.model_path}.. Please wait.")
         logging.warning(f"🌺 This may take some time. We check how many concurrent requests your GPUs can handle.")
-        
-        vram_limit = 0.95  # 95% of VRAM limit
-        
+
         try:
-            # Measure VRAM usage with a single request
-            single_request_future = self.run_interactive_test()
-            single_request_future.result()  # Wait for the single request to complete
+            await self.run_interactive_test()
             single_request_memory = self.get_gpu_memory(get_first_gpu(gpu_id))
             logging.info(f"Single request GPU memory usage: {single_request_memory:.2f} MB")
 
-            # Measure VRAM usage with two simultaneous requests
-            futures = [self.run_interactive_test(), self.run_interactive_test()]
-
-            for future in concurrent.futures.as_completed(futures):
-                response = future.result()
-            
+            await asyncio.gather(
+                self.run_interactive_test(),
+                self.run_interactive_test()
+            )
             total_memory = self.get_gpu_memory(get_first_gpu(gpu_id))
             logging.info(f"Total GPU memory used with two concurrent requests: {total_memory:.2f} MB")
 
-            # Calculate RAM usage per request
-            ram_per_request = (total_memory - single_request_memory)  # Divide by 2 for two requests
+            ram_per_request = (total_memory - single_request_memory) / 2
             logging.info(f"RAM usage per request with two concurrent requests: {ram_per_request:.2f} MB")
 
         except Exception as e:
@@ -226,8 +220,9 @@ class TurboMind:
                 pass
 
     # Function for interactive completions
-    def interactive(self, prompt=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, top_k=40, max_tokens=512):
+    async def interactive_async(self, prompt=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, top_k=40, max_tokens=512):
         logging.debug(f"[-->] (Interactive) [{self.model_path}] Request for completion")
+        
         payload = {
             "prompt": prompt,
             "temperature": temperature,
@@ -237,27 +232,26 @@ class TurboMind:
             "stream": True,
             "request_output_len": max_tokens
         }
-        data = json.dumps(payload)
-        response = requests.post(f"http://{self.host}:{self.port}" + '/v1/chat/interactive', data=data, stream=True)
 
-        stream_start_time = time.time()
-        response_stream = response.iter_content(chunk_size=1024, decode_unicode=True)
-        tokens = 0;
-        for chunk in response_stream:
-            try:
-                if is_valid_json(chunk):
-                    chunk_data = json.loads(chunk)
-                    if 'text' in chunk_data:
-                        yield json.dumps({"text": chunk_data['text']})+"\n"
-                        tokens = chunk_data['tokens'];         
-            except Exception as e:
-                logging.error('Chunk :', str(e))
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"http://{self.host}:{self.port}/v1/chat/interactive", json=payload, headers=self.headers) as response:
+                stream_start_time = time.time()
+                tokens = 0
+                try:
+                    async for chunk in response.content.iter_any():
+                        chunk = chunk.decode('utf-8')
+                        if is_valid_json(chunk):
+                            chunk_data = json.loads(chunk)
+                            if 'text' in chunk_data:
+                                yield json.dumps({"text": chunk_data['text']}) + "\n"
+                                tokens = chunk_data['tokens']
+                except Exception as e:
+                    logging.error('Chunk:', str(e))
 
-        streaming_duration = round(time.time() - stream_start_time, 2)
-        logging.debug(f"[<--] (Interactive) [{self.model_path}] Completion done in {streaming_duration}s ({tokens} tokens)")
+                streaming_duration = round(time.time() - stream_start_time, 2)
+                logging.debug(f"[<--] (Interactive) [{self.model_path}] Completion done in {streaming_duration}s")
 
-    # Function for message completions
-    def completion(self, messages=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, max_tokens=512):
+    async def completion_async(self, messages=None, temperature=0.7, repetition_penalty=1.2, top_p=0.7, max_tokens=512, top_k=40):
         logging.debug(f"[-->] [{self.model_path}] Request for completion")
         payload = {
             "model": self.tb_model,
@@ -265,30 +259,27 @@ class TurboMind:
             "temperature": temperature,
             "repetition_penalty": repetition_penalty,
             "top_p": top_p,
+            "top_k": top_k,
             "stream": True,
             "max_tokens": max_tokens
         }
-        data = json.dumps(payload)
-        response = requests.post(f"http://{self.host}:{self.port}" + '/v1/chat/completions', data=data, stream=True)
 
-        stream_start_time = time.time()
-        response_stream = response.iter_content(chunk_size=1024, decode_unicode=True)
-        tokens = 0;
-        for chunk in response_stream:
-            try:
-                chunk = chunk.replace("data:", "")
-                if is_valid_json(chunk):
-                    chunk_data = json.loads(chunk) 
-                    if 'choices' in chunk_data:
-                        if 'content' in chunk_data['choices'][0]["delta"]:
-                            yield json.dumps({"text": chunk_data['choices'][0]["delta"]["content"]})+"\n"
-                            
-         
-            except Exception as e:
-                logging.error('Chunk :', str(e))
-
-        streaming_duration = round(time.time() - stream_start_time, 2)
-        logging.debug(f"[<--] (Completion) [{self.model_path}] Completion done in {streaming_duration}s")
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"http://{self.host}:{self.port}/v1/chat/completions", json=payload, headers=self.headers) as response:
+                stream_start_time = time.time()
+                tokens = 0
+                try:
+                    async for chunk in response.content.iter_any():
+                        chunk = chunk.decode('utf-8').replace("data:", "")
+                        if is_valid_json(chunk):
+                            chunk_data = json.loads(chunk)
+                            if 'choices' in chunk_data:
+                                if 'content' in chunk_data['choices'][0]["delta"]:
+                                    yield json.dumps({"text": chunk_data['choices'][0]["delta"]["content"]}) + "\n"
+                except Exception as e:
+                    logging.error('Chunk:', str(e))
+                streaming_duration = round(time.time() - stream_start_time, 2)
+                logging.debug(f"[<--] (Completion) [{self.model_path}] Completion done in {streaming_duration}s")
 
     async def destroy(self):
         if self.process:

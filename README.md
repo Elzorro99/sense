@@ -33,7 +33,7 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Make the script executable:**
 
-```chmod  +x install.sh```
+```chmod +x install.sh```
 
 
 **Run the auto-installer:**
@@ -106,8 +106,6 @@ To allocate weights to the Flavia subnet, you can use the ```btcli root weights`
 By assigning weights to our subnet, you play a vital role in enhancing its inference capabilities and overall contribution to the BitTensor network. Your support helps us maintain a high-performance, reliable, and efficient subnet for decentralized model inference.
 
 We appreciate your contribution and thank you for your support in advancing decentralized AI with Flavia.
-
-
 
 
 ## 📜 License
