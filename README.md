@@ -6,11 +6,9 @@ Daemon for Model Inference and Auto-Scaling for ρ Subnet
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/bittensor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
-
 [Discord](https://discord.gg/bittensor) • [Cortex Foundation](https://cortex.foundation/) • [Bittensor](https://bittensor.com/whitepaper)
 </div>
 
-#
 ### 🔴 This is an alpha version. Please report any bugs or suggest any improvements.
 ### 📋 Introduction
 This repository includes a daemon service designed to automate the inference process for Large Language Models (LLMs) / GenAI models and manage the auto-scaling of resources. The daemon intelligently adjusts computational resources in response to real-time demand and system performance, ensuring high efficiency and robust model performance.
@@ -27,7 +25,7 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/CortexLM/sense/0.2.2/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.2.2/install.sh```
 
 **Make the script executable:**
 
@@ -51,26 +49,17 @@ This repository includes a daemon service designed to automate the inference pro
 
 ```sense config init```
 
-
-**Install Node.js and PM2:**
-
-```curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash```
-
-```export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"```
-
-```[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"```
-
-```nvm install --lts```
-
-```npm i pm2 -g```
-
-
-
 Then generate an API key, which will ask you to allocate the GPUs. You can only allocate one GPU for the Diffusion model, and (1,2 or 4 GPUs). To allocate them, simply enter the GPU ID.
 
 For 8 GPUs :
 Diffusions: ```4,5,6,7```
 Turbomind ```0,1,2,3```
+
+**Install Node.js and PM2:**
+
+```apt install nodejs npm -y```
+
+```npm i pm2 -g```
 
 **Run:**
 
@@ -83,7 +72,6 @@ Validators 🥇
 
 ```pm2 start run.py --name sense -- --process_name sense_daemon --host 0.0.0.0 --port 8080 --prevent_oom --instance_num 1```
 
-
 ## 📋 Requirements
 
 ### **Validators :**
@@ -94,7 +82,6 @@ Storage: 300GB
 
 RAM: 32GB
 
-
 ### **Miners :**
 
 5x24GB GPU or 2x80GB GPU
@@ -102,7 +89,6 @@ RAM: 32GB
 Storage: 500GB
 
 RAM: 64GB
-
 
 ## ⚖️ Support our Subnet: Assigning weights
 As a validator in the Bittensor network, your support is crucial for the success and efficiency of subnets like Flavia. We invite you to consider assigning weights to our subnet, which will significantly contribute to its performance and the overall robustness of the network.
@@ -112,9 +98,6 @@ To allocate weights to the Flavia subnet, you can use the ```btcli root weights`
 By assigning weights to our subnet, you play a vital role in enhancing its inference capabilities and overall contribution to the BitTensor network. Your support helps us maintain a high-performance, reliable, and efficient subnet for decentralized model inference.
 
 We appreciate your contribution and thank you for your support in advancing decentralized AI with Flavia.
-
-
-
 
 ## 📜 License
 This repository is licensed under the MIT License.
