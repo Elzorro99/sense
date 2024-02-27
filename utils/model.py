@@ -95,6 +95,7 @@ class ModelManager:
     async def allocate_wrapper(self, engine, model_name, n_gpus, tb_model_type=None):
         async for chunk in self.allocate(engine=engine, model_name=model_name, n_gpus=n_gpus, tb_model_type=tb_model_type):
             logging.debug(chunk)
+            
     def edit_config(self, file_path, changes):
         try:
             with open(file_path, 'r') as file:
