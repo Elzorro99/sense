@@ -40,7 +40,7 @@ def main():
         logging.error(f"Error when loading the config.json file: {e}")
         return;
     system.display_system_info()
-    model = ModelManager(pulse=args.pulse, prevent_oom=args.prevent_oom, instance_num=args.instance_num)
+    model = ModelManager(pulse=args.pulse, prevent_oom=args.prevent_oom, instance_num=args.instance_num, turbo=args.turbo)
     api = DaemonAPI(model=model, api_tokens=config['api_tokens'])
     api.run(host=args.host, port=args.port)
 if __name__ == "__main__":
