@@ -33,11 +33,12 @@ class ModelManager:
         logging.debug(f'Use worker {queue}')
         return model['workers'][queue]
     
-    def __init__(self, pulse=False, prevent_oom=False, instance_num=8):
+    def __init__(self, pulse=False, prevent_oom=False, instance_num=8, turbo=1):
         self.models = {}
         self.prevent_oom = prevent_oom
         self.base_directory = os.getcwd()
         self.instance_num = instance_num
+        self.turbo = turbo
         self.models_directory = os.path.join(self.base_directory, 'models')
         self.available_ports = [6000,6001,6002,6003,6004,6005,6006]
         self.used_ports = set()
@@ -129,7 +130,7 @@ class ModelManager:
 
         self.config['models']["turbomind"][0]['modelName'] = "TheBloke|bagel-dpo-34b-v0.2-AWQ"
         self.edit_config(f"{path}/../config.json", self.config)
-        gpu_ids = models["diffusions"][0]["gpu_id"].split(",")
+        gpu_ids = models["diffusions"][0][f"gpu_id{self.turbo}"].split(",")
         
         tasks = []
         if mode in [0, 1]:
