@@ -32,7 +32,7 @@ source ~/miniconda3/etc/profile.d/conda.sh
 
 # Step 2: Cloning GitHub Repository
 echo -e "${BLUE}Step 2: Cloning GitHub Repository${NC}"
-git clone -b 0.2.7 https://github.com/Elzorro99/sense /srv/sense
+git clone -b 0.2.7a https://github.com/Elzorro99/sense /srv/sense
 cd /srv/sense
 # Step 3: Creating and Activating Conda Environment
 echo -e "${BLUE}Step 3: Creating and Activating Conda Environment 'sense'${NC}"
