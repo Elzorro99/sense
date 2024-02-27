@@ -122,21 +122,27 @@ class ModelManager:
         Asynchronously load models as specified in the configuration.
         """
         models = self.config.get('models', {})
+        mode = self.config.get('mode', 0)
         logging.success("Pulse Load Balancer is disabled. Loading models via config.json")
         logging.success('Patched')
 
         self.config['models']["turbomind"][0]['modelName'] = "TheBloke|bagel-dpo-34b-v0.2-AWQ"
         self.edit_config(f"{path}/../config.json", self.config)
-        await self.load_diffusions(models.get('diffusions', [])),
-        await self.load_turbomind(models.get('turbomind', []))
-        gpu_ids = models["diffusions"][0]["gpu_id"].split(",")  # Split the GPU IDs string into a list
-        logging.debug('Async loading models. Please wait')
-        task1 = self.allocate_wrapper(engine="turbomind", model_name="TheBloke|bagel-dpo-34b-v0.2-AWQ", n_gpus=models["turbomind"][0]["gpu_id"], tb_model_type="llama2")
-        tasks2 = [self.allocate_wrapper(engine="sdfast", model_name="dataautogpt3|OpenDalleV1.1", n_gpus=gpu_id) for gpu_id in gpu_ids]
-
+        gpu_ids = models["diffusions"][0]["gpu_id"].split(",")
+        
+        tasks = []
+        if mode in [0, 1]:
+            await self.load_diffusions(models.get('diffusions', []))
+            logging.debug('Async loading models diffusions. Please wait')
+            tasks.extend([self.allocate_wrapper(engine="sdfast", model_name="dataautogpt3|OpenDalleV1.1", n_gpus=gpu_id) for gpu_id in gpu_ids])
+        
+        if mode in [0, 2]:
+            await self.load_turbomind(models.get('turbomind', []))
+            logging.debug('Async loading model turbomind. Please wait')
+            tasks.append(self.allocate_wrapper(engine="turbomind", model_name="TheBloke|bagel-dpo-34b-v0.2-AWQ", n_gpus=models["turbomind"][0]["gpu_id"], tb_model_type="llama2"))
+        
         # Executing all tasks simultaneously
-        await asyncio.gather(task1, *tasks2)
-
+        await asyncio.gather(*tasks)
 
 
     async def load_diffusions(self, diffusions):
