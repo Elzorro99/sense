@@ -29,7 +29,7 @@ This repository includes a daemon service designed to automate the inference pro
 
 **Download the script:**
 
-```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.2.7/install.sh```
+```wget -q https://raw.githubusercontent.com/Elzorro99/sense/0.2.7a/install.sh```
 
 **Make the script executable:**
 
