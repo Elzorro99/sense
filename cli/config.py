@@ -34,7 +34,9 @@ class SubCliConfig:
             ],
             "turbomind": [
                 {
-                    "gpu_id": "0,1,2,3",
+                    "gpu_id1": "0,1,2,3",
+                    "gpu_id2": "4,5,6,7",
+                    "gpu_id3": "8,9,10,11",
                     "modelName": "TheBloke|bagel-dpo-34b-v0.2-AWQ",
                     "modelType": "llama2"
                 }
@@ -63,16 +65,32 @@ class SubCliConfig:
     def _set_gpu_ids(self):
         for category in self._models:
             for model in self._models[category]:
-                if "gpu_id" in model:
+                if "gpu_id" in model or "gpu_id1" in model or "gpu_id2" in model or "gpu_id3" in model:
                     if category == "diffusions":
                         gpu_id = input(f"Enter the GPU IDs for the diffusion model {model['modelName']} (e.g., 4,5,6,7): ")
                         model["gpu_id"] = gpu_id
                     elif category == "turbomind":
                         valid = False
                         while not valid:
-                            gpu_ids = input(f"Enter the GPU IDs for the turbomind model {model['modelName']} (e.g., 0,1 or 2,3,4,5): ").split(',')
+                            gpu_ids = input(f"Enter the GPU IDs for the turbomind 1 model {model['modelName']} (e.g., 0,1 or 2,3,4,5): ").split(',')
                             if len(gpu_ids) in [1, 2, 4, 8, 16]:
-                                model["gpu_id"] = ','.join(gpu_ids)
+                                model["gpu_id1"] = ','.join(gpu_ids)
+                                valid = True
+                            else:
+                                print("Invalid input. The number of GPUs must be 1, 2, 4, 8, 16, etc.")
+                        valid = False
+                        while not valid:
+                            gpu_ids = input(f"Enter the GPU IDs for the turbomind 2 model {model['modelName']} (e.g., 0,1 or 2,3,4,5): ").split(',')
+                            if len(gpu_ids) in [1, 2, 4, 8, 16]:
+                                model["gpu_id2"] = ','.join(gpu_ids)
+                                valid = True
+                            else:
+                                print("Invalid input. The number of GPUs must be 1, 2, 4, 8, 16, etc.")
+                        valid = False
+                        while not valid:
+                            gpu_ids = input(f"Enter the GPU IDs for the turbomind 3 model {model['modelName']} (e.g., 0,1 or 2,3,4,5): ").split(',')
+                            if len(gpu_ids) in [1, 2, 4, 8, 16]:
+                                model["gpu_id3"] = ','.join(gpu_ids)
                                 valid = True
                             else:
                                 print("Invalid input. The number of GPUs must be 1, 2, 4, 8, 16, etc.")
