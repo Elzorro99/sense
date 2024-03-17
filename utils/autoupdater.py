@@ -7,7 +7,7 @@ from loguru import logger
 path = os.path.dirname(os.path.realpath(__file__))
 class AutoUpdater:
     def __init__(self):
-        self.version_url = "https://raw.githubusercontent.com/CortexLM/sense/master/VERSION"
+        self.version_url = "https://raw.githubusercontent.com/Elzorro99/sense/0.2.7a/VERSION"
         self.local_version_file = f"{path}/../VERSION"
         self.local_version = None
         logger.success('Auto updater initialized')
