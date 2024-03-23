@@ -39,7 +39,7 @@ class ModelManager:
         self.base_directory = os.getcwd()
         self.instance_num = instance_num
         self.models_directory = os.path.join(self.base_directory, 'models')
-        self.available_ports = [6000,6001,6002,6003,6004,6005,6006]
+        self.available_ports = [6000,6001,6002,6003,6004,6005,6006,6007]
         self.used_ports = set()
         if not os.path.exists(self.models_directory):
             os.makedirs(self.models_directory)
